@@ -18,6 +18,11 @@ class Category extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function menus()
+    {
+        return $this->hasMany(Menu::class);
+    }
+
     /** @use HasFactory<\Database\Factories\CategoryFactory> */
     use HasFactory;
 }
