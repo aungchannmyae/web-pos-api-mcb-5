@@ -8,6 +8,9 @@ use App\Http\Requests\UpdateMenuRequest;
 use App\Http\Resources\MenuResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+
+use function PHPUnit\Framework\isNumeric;
 
 class MenuController extends Controller
 {
@@ -21,6 +24,7 @@ class MenuController extends Controller
 
         // VALIDATE AND SET SORTING PARAMETERS
         $validSortColumns = ['id', 'title', 'price'];
+
         $sortBy = in_array($request->input('sort_by'), $validSortColumns, true)
             ? $request->input('sort_by')
             : 'id';
@@ -29,6 +33,10 @@ class MenuController extends Controller
             ? $request->input('sort_direction')
             : 'desc';
 
+        // GET PRICE RANGE PARAMETERS
+        $priceMin = $request->input("price_min");
+        $priceMax = $request->input("price_max");
+
         // VALIDATE AND SET PAGINATION LIMIT
         $limit = $request->input('limit', 5);
         $limit = is_numeric($limit) && $limit > 0 && $limit <= 100
@@ -36,15 +44,27 @@ class MenuController extends Controller
             : 5;
 
         // INITIALIZE QUERY WITH USER SCOPE
-        $query = Menu::query()->where('user_id', Auth::id());
+        $query = Menu::query()->where('user_id', Auth::id())->with('category');
 
         // APPLY SEARCH FILTER
         if ($searchTerm) {
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('title', 'like', '%' . $searchTerm . '%')
                     ->orWhere('slug', 'like', '%' . $searchTerm . '%')
-                    ->orWhere('price', 'like', '%' . $searchTerm . '%');
+                    ->orWhere('price', 'like', '%' . $searchTerm . '%')
+                    ->orWhereHas('category', function ($cat) use ($searchTerm) {
+                        $cat->where('title', 'like', "%{$searchTerm}%")
+                            ->orWhere('slug', 'like', "%{$searchTerm}%");
+                    });
             });
+        }
+
+        // APPLY PRICE RANGE FILTER
+        if ($priceMin !== null && isNumeric($priceMin)) {
+            $query->where('price', ">=", (float) $priceMin);
+        }
+        if ($priceMax !== null && isNumeric($priceMax)) {
+            $query->where('price', "<=", (float) $priceMax);
         }
 
         // APPLY SORTING
@@ -59,6 +79,8 @@ class MenuController extends Controller
             'sort_by' => $sortBy,
             'sort_direction' => $sortDirection,
             'limit' => $limit,
+            'price_min' => $priceMin,
+            'price_max' => $priceMax,
         ]);
 
         // RETURN RESOURCE COLLECTION
@@ -75,6 +97,8 @@ class MenuController extends Controller
     {
         $menu = Menu::create([
             ...$request->validated(),
+            'slug' => Str::slug($request->title),
+            'category_id' => $request->category_id,
             'user_id' => Auth::id(),
         ]);
 
@@ -100,8 +124,13 @@ class MenuController extends Controller
      */
     public function update(UpdateMenuRequest $request, Menu $menu)
     {
-        $menu->fill($request->validated());
-        $menu->save();
+        $data = $request->validated();
+    
+        if (isset($data['title']) &&  $data['title'] !== $menu->title) {
+            $data['slug'] = Str::slug($data['title']);
+        }
+
+        $menu->update($data);
 
         return response()->json([
             'message' => 'Menu updated successfully',
