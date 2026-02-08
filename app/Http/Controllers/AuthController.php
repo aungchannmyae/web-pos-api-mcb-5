@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Resources\LoginResource;
+use App\Http\Resources\ProfileResource;
 use App\Http\Resources\RegisterResource;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -15,7 +16,7 @@ use Illuminate\Support\Facades\Hash;
 class AuthController extends Controller
 {
 
-    // Register Function
+    // Register the new user
     public function register(RegisterRequest $request)
     {
 
@@ -29,12 +30,15 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'User Registered Successfully.',
-            'data' => new RegisterResource($token, $user)
+            'data' => [
+                'token' => $token,
+                'user' => new ProfileResource($user)
+            ]
         ]);
     }
 
 
-    // Login Function
+    // Login users
     public function login(LoginRequest $request)
     {
 
@@ -48,7 +52,10 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'User Logged in Successfully.',
-            'data' => new LoginResource($token, $user)
+            'data' => [
+                'token' => $token,
+                'user' => new ProfileResource($user)
+            ]
         ]);
     }
 }
