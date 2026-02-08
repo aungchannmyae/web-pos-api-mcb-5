@@ -2,6 +2,7 @@
 
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -18,5 +19,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/change-password', 'changePassword');
         Route::patch('/change-name', 'changeName');
     });
+    Route::apiResource('customers', CustomerController::class);
 });
 
