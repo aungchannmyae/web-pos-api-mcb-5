@@ -20,5 +20,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/change-name', 'changeName');
     });
     Route::apiResource('customers', CustomerController::class);
+    Route::apiResource("photos", PhotoController::class)->only(["store", "destroy"]);
 });
+
 
