@@ -1,14 +1,22 @@
 <?php
 
-use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\MenuController;
+
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+Route::controller(AuthController::class)->group(function () {
+    Route::post('/login', 'login');
+    Route::post('/register', 'register');
+});
 
-Route::apiResource("category", CategoryController::class);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::controller(ProfileController::class)->group(function () {
+        Route::get('/show', 'show');
+        Route::patch('/logout', 'logout');
+        Route::patch('/change-password', 'changePassword');
+        Route::patch('/change-name', 'changeName');
+    });
+});
 
-Route::apiResource("menu", MenuController::class);
