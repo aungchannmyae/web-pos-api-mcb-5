@@ -2,7 +2,10 @@
 
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\MenuController;
+use App\Http\Controllers\PhotoController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -20,7 +23,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/change-name', 'changeName');
     });
     Route::apiResource('customers', CustomerController::class);
+    Route::apiResource('menu', MenuController::class);
+    Route::apiResource('category', CategoryController::class);
     Route::apiResource("photos", PhotoController::class)->only(["store", "destroy"]);
 });
-
-
