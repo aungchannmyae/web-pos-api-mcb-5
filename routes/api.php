@@ -1,5 +1,6 @@
 <?php
 
+
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Http\Request;
@@ -18,3 +19,4 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/change-name', 'changeName');
     });
 });
+
